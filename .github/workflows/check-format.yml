@@ -1,0 +1,21 @@
+name: Check format
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Deps
+        run: sudo apt-get install clang-format
+
+      - name: Check format
+        working-directory: ${{github.workspace}}
+        run: ./reformat.sh && if [[ $(git status -s) ]]; then echo Not formatted properly; exit 1; fi

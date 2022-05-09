@@ -1,0 +1,23 @@
+{
+  "name": "yal",
+  "version": "0.0.1",
+  "description": "Yet another logging library",
+  "keywords": "logging, esp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexmohr/yal.git"
+  },
+  "authors": [
+    {
+      "name": "Alexander Mohr",
+      "email": "yal@mohr.io",
+      "url": "https://mohr.io",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {
+  },
+  "frameworks": "arduino",
+  "platforms": "*"
+}
