@@ -3,8 +3,8 @@
 // Licensed under the terms of the MIT License
 //
 
-#ifndef YAL_SERIALAPPENDER_H
-#define YAL_SERIALAPPENDER_H
+#ifndef YAL_MQTTAPPENDER
+#define YAL_MQTTAPPENDER
 
 #include <yal/abstraction.hpp>
 #include <yal/appender/Base.hpp>
@@ -14,7 +14,7 @@
 
 namespace yal::appender {
 
-// using String because MQTT library is expecting them
+// using std::string because MQTT library is expecting them
 // this avoids conversions
 struct MqttMessage {
   String message;
@@ -24,7 +24,7 @@ struct MqttMessage {
 template<typename MQTT>
 class ArduinoMQTT : public Base {
   public:
-  explicit ArduinoMQTT(MQTT* mqtt, String topic) :
+  explicit ArduinoMQTT(MQTT* mqtt, std::string topic) :
       m_mqtt(std::move(mqtt)), m_topic(std::move(topic))
   {
   }
@@ -55,18 +55,18 @@ class ArduinoMQTT : public Base {
   }
 
   protected:
-  void append(const Level& level, const String& text) override
+  void append(const Level& level, const std::string& text) override
   {
-    m_mqtt_msg_queue.push({m_topic, text});
+    m_mqtt_msg_queue.push({String(m_topic.c_str()), String(text.c_str())});
   }
 
   private:
   MQTT* const m_mqtt;
-  const String m_topic;
+  const std::string m_topic;
 
   std::queue<MqttMessage> m_mqtt_msg_queue;
 };
 
 } // namespace yal::appender
 
-#endif // YAL_SERIALAPPENDER_H
+#endif // YAL_MQTTAPPENDER

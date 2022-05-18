@@ -24,7 +24,7 @@ class MQTT {
   public:
   MQTT() = default;
   MQTT(MQTT&) = delete;
-  MOCK_METHOD2(publish, void(String, String));
+  MOCK_METHOD2(publish, void(std::string, std::string));
 };
 
 TEST_F(ArduinoMQTTTest, expectFlushAtDestruction)

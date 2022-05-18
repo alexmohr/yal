@@ -14,7 +14,7 @@ template<typename HardwareSerial>
 class ArduinoSerial : public Base {
   public:
   ArduinoSerial(HardwareSerial* serial, bool colored) :
-      m_serial(serial), m_colored(colored), Base()
+      Base(), m_serial(serial), m_colored(colored)
   {
   }
 
@@ -40,7 +40,7 @@ class ArduinoSerial : public Base {
   }
 
   protected:
-  void append(const Level& level, const String& text) override
+  void append(const Level& level, const std::string& text) override
   {
     if (m_colored) {
       m_serial->print(LEVEL_COLOR[static_cast<unsigned int>(level)]);
@@ -50,8 +50,8 @@ class ArduinoSerial : public Base {
   }
 
   private:
+  HardwareSerial* m_serial = nullptr;
   bool m_colored;
-  HardwareSerial* m_serial;
 
   static constexpr const char* const COLOR_TRACE = "\033[1;37m";
   static constexpr const char* const COLOR_DEBUG = "\033[1;37m";

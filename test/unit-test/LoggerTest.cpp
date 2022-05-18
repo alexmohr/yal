@@ -27,7 +27,7 @@ TEST_F(LoggerTest, loggerNoFormat)
   const yal::Logger logger(ctx);
   const auto loggerText = "this logger has no format";
   auto appenderId
-    = yal::Logger::addAppender([&](const yal::Level& level, const String& text) {
+    = yal::Logger::addAppender([&](const yal::Level& level, const std::string& text) {
         const auto expected = m_expectedTime + "[DEBUG][" + ctx + "] " + loggerText;
         EXPECT_EQ(text, expected);
       });
@@ -41,7 +41,7 @@ TEST_F(LoggerTest, loggerFormat)
 {
   yal::Logger logger("test");
   auto appenderId
-    = yal::Logger::addAppender([&](const yal::Level& level, const String& text) {
+    = yal::Logger::addAppender([&](const yal::Level& level, const std::string& text) {
         EXPECT_EQ(text, m_formattedExpect);
       });
   logger.log(yal::Level::DEBUG, "logger test % bar %", 42, 3.15);
@@ -52,11 +52,11 @@ TEST_F(LoggerTest, multipleAppenders)
 {
   yal::Logger logger("test");
   auto appenderId1
-    = yal::Logger::addAppender([&](const yal::Level& level, const String& text) {
+    = yal::Logger::addAppender([&](const yal::Level& level, const std::string& text) {
         EXPECT_EQ(text, m_formattedExpect);
       });
   auto appenderId2
-    = yal::Logger::addAppender([&](const yal::Level& level, const String& text) {
+    = yal::Logger::addAppender([&](const yal::Level& level, const std::string& text) {
         EXPECT_EQ(text, m_formattedExpect);
       });
   logger.log(yal::Level::DEBUG, "logger test % bar %", 42, 3.15);

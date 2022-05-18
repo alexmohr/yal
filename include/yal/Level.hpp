@@ -19,7 +19,7 @@ class Level {
   {
   }
 
-  [[nodiscard]] String str() const
+  [[nodiscard]] std::string str() const
   {
     return s_log_level_name[m_level];
   }
@@ -28,9 +28,17 @@ class Level {
   {
     return static_cast<int>(m_level) > static_cast<int>(other.m_level);
   }
+  inline bool operator>=(const Level& other) const
+  {
+    return static_cast<int>(m_level) >= static_cast<int>(other.m_level);
+  }
   inline bool operator<(const Level& other) const
   {
     return static_cast<int>(m_level) < static_cast<int>(other.m_level);
+  }
+  inline bool operator<=(const Level& other) const
+  {
+    return static_cast<int>(m_level) <= static_cast<int>(other.m_level);
   }
 
   explicit operator unsigned int() const
