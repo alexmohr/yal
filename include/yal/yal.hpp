@@ -6,6 +6,10 @@
 #ifndef YAL_YAL_HPP
 #define YAL_YAL_HPP
 
+#if HAVE_ARDUINO || YAL_ARDUINO_SUPPORT
+#include <Arduino.h>
+#endif
+
 #include <cstddef>
 #include <functional>
 #include <sstream>
@@ -20,15 +24,15 @@
 
 namespace yal {
 
-using Appender = std::function<void(const Level& level, const String& text)>;
+using Appender = std::function<void(const Level& level, const std::string& text)>;
 using AppenderId = std::size_t;
-static constexpr const auto AppenderIdNotSet = UINT64_MAX;
-using GetTime = std::function<String()>;
+static constexpr const auto AppenderIdNotSet = std::numeric_limits<AppenderId>::max();
+using GetTime = std::function<std::string()>;
 
 class Logger {
   public:
   Logger() = default;
-  explicit Logger(String ctx);
+  explicit Logger(std::string ctx);
   Logger(const Logger&) = delete;
   Logger(Logger&&) = default;
   void operator=(const Logger&) = delete;
@@ -44,7 +48,7 @@ class Logger {
   void log(const Level& level, const char* text) const
   {
     // discard message is level is turned off
-    if (m_level > level) {
+    if (m_level > level || level >= Level::Value::OFF) {
       return;
     }
 
@@ -98,7 +102,7 @@ class Logger {
   [[nodiscard]] std::stringstream messagePrefix(const Level& level) const;
 
   static inline Level s_defaultLevel = Level::DEBUG;
-  String m_context;
+  std::string m_context;
   Level m_level = s_defaultLevel;
 
 #ifndef millis

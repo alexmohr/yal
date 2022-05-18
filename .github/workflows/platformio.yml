@@ -1,0 +1,35 @@
+name: Platformio
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Deps
+        run: sudo apt-get install libgtest-dev libgmock-dev python3
+
+      - name: Install platformio
+        run: python3 -c "$(curl -fsSL https://raw.githubusercontent.com/platformio/platformio/master/scripts/get-platformio.py)"
+
+      - name: Update path
+        run: echo "$HOME/.platformio/penv/bin" >> $GITHUB_PATH
+
+      - name: Configure platformio
+        working-directory: ${{github.workspace}}/platformio
+        run: platformio init
+
+      - name: Build
+        working-directory: ${{github.workspace}}/platformio
+        run: platformio run

@@ -8,7 +8,7 @@
 
 namespace yal {
 
-Logger::Logger(String ctx) : m_context(std::move(ctx))
+Logger::Logger(std::string ctx) : m_context(std::move(ctx))
 {
 }
 
