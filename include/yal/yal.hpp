@@ -6,21 +6,13 @@
 #ifndef YAL_YAL_HPP
 #define YAL_YAL_HPP
 
-#if HAVE_ARDUINO || YAL_ARDUINO_SUPPORT
-#include <Arduino.h>
-#endif
-
+#include <yal/Level.hpp>
+#include <yal/abstraction.hpp>
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <sstream>
 #include <vector>
-
-#ifndef millis
-#include <chrono>
-#endif
-
-#include <yal/Level.hpp>
-#include <sstream>
 
 namespace yal {
 
@@ -42,13 +34,13 @@ class Logger {
 
   static void setTimeFunc(GetTime&& func);
 
-  void setLevel(const Level& level);
-  [[nodiscard]] const Level& level();
+  static void setLevel(const Level& level);
+  [[nodiscard]] static const Level& level();
 
   void log(const Level& level, const char* text) const
   {
     // discard message is level is turned off
-    if (m_level > level || level >= Level::Value::OFF) {
+    if (!levelEnabled(level)) {
       return;
     }
 
@@ -64,7 +56,7 @@ class Logger {
   void log(const Level& level, const char* format, T value, Targs... args) const
   {
     // discard message is level is turned off
-    if (m_level > level) {
+    if (!levelEnabled(level)) {
       return;
     }
 
@@ -78,6 +70,11 @@ class Logger {
   }
 
   private:
+  [[nodiscard]] static bool levelEnabled(const Level& level)
+  {
+    return m_level >= level && level <= Level::OFF;
+  }
+
   template<typename T, typename... Targs>
   void buildMessage(std::stringstream& ss, const char* format, T value, Targs... args)
     const
@@ -102,18 +99,10 @@ class Logger {
   [[nodiscard]] std::stringstream messagePrefix(const Level& level) const;
 
   static inline Level s_defaultLevel = Level::DEBUG;
-  std::string m_context;
-  Level m_level = s_defaultLevel;
-
-#ifndef millis
-  static unsigned long millis()
-  {
-    return std::chrono::steady_clock::now().time_since_epoch().count();
-  }
-#endif
-  static inline GetTime m_time = []() { return std::to_string(millis()); };
-
+  static inline GetTime s_getTime = []() { return std::to_string(millis()); };
   static inline std::vector<Appender> s_appender;
+  static inline Level m_level = s_defaultLevel;
+  std::string m_context;
 };
 } // namespace yal
 

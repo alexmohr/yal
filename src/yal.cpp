@@ -26,7 +26,7 @@ void Logger::removeAppender(AppenderId appenderId)
 
 void Logger::setTimeFunc(GetTime&& func)
 {
-  m_time = std::move(func);
+  s_getTime = std::move(func);
 }
 
 void Logger::setLevel(const Level& level)
@@ -43,9 +43,9 @@ std::stringstream Logger::messagePrefix(const Level& level) const
 {
   std::stringstream ss;
   static constexpr const auto timeWidth = 20;
-  const auto time = m_time();
+  const auto time = s_getTime();
   if (!time.empty()) {
-    ss << "[" << std::setfill('0') << std::setw(timeWidth) << m_time() << "]";
+    ss << "[" << std::setfill('0') << std::setw(timeWidth) << s_getTime() << "]";
   }
   ss << "[" << level.str() << "]";
   if (!m_context.empty()) {

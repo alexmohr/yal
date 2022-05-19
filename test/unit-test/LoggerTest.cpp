@@ -63,3 +63,28 @@ TEST_F(LoggerTest, multipleAppenders)
   yal::Logger::removeAppender(appenderId1);
   yal::Logger::removeAppender(appenderId2);
 }
+
+TEST_F(LoggerTest, setLimit)
+{
+  yal::Logger logger;
+  bool called = false;
+  yal::Appender appender
+    = [&](const yal::Level& level, const std::string& text) { called = true; };
+  yal::Logger::addAppender(std::move(appender));
+
+  for (auto level = static_cast<int>(yal::Level::TRACE);
+       level < static_cast<int>(yal::Level::OFF);
+       ++level) {
+    const auto maxLevel = static_cast<yal::Level::Value>(level);
+    yal::Logger::setLevel(maxLevel);
+    for (auto smallerLevel = 0; smallerLevel <= maxLevel; ++smallerLevel) {
+      called = false;
+      logger.log(static_cast<yal::Level::Value>(smallerLevel), "test");
+      EXPECT_TRUE(called);
+    }
+
+    called = false;
+    logger.log(static_cast<yal::Level::Value>(maxLevel + 1), "test");
+    EXPECT_FALSE(called);
+  }
+}
