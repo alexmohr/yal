@@ -17,6 +17,13 @@ void delay(unsigned long millis);
 using String = std::string;
 #endif
 
+#ifndef millis
+#include <chrono>
+unsigned long millis();
+#endif
+
+#else
+#include <Arduino.h>
 #endif
 
 #endif // YAL_ABSTRACTION_HPP

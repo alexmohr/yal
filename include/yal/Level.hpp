@@ -8,6 +8,7 @@
 
 #include <yal/abstraction.hpp>
 #include <array>
+#include <string>
 
 namespace yal {
 
