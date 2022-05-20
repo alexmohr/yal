@@ -16,7 +16,7 @@
 
 namespace yal {
 
-using Appender = std::function<void(const Level& level, const std::string& text)>;
+using Appender = std::function<void(const Level& level, const char* text)>;
 using AppenderId = std::size_t;
 static constexpr const auto AppenderIdNotSet = std::numeric_limits<AppenderId>::max();
 using GetTime = std::function<std::string()>;
@@ -48,7 +48,7 @@ class Logger {
     ss << text;
     const auto msg = ss.str();
     for (const auto& appender : s_appender) {
-      appender(level, msg);
+      appender(level, msg.c_str());
     }
   }
 
@@ -65,7 +65,7 @@ class Logger {
 
     const auto str = ss.str();
     for (const auto& appender : s_appender) {
-      appender(level, str);
+      appender(level, str.c_str());
     }
   }
 
