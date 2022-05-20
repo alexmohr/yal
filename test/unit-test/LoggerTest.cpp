@@ -77,6 +77,7 @@ TEST_F(LoggerTest, setLimit)
        ++level) {
     const auto maxLevel = static_cast<yal::Level::Value>(level);
     yal::Logger::setLevel(maxLevel);
+    EXPECT_EQ(yal::Logger::level().value(), maxLevel);
     for (auto smallerLevel = 0; smallerLevel <= maxLevel; ++smallerLevel) {
       called = false;
       logger.log(static_cast<yal::Level::Value>(smallerLevel), "test");

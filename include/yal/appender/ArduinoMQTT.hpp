@@ -64,7 +64,7 @@ class ArduinoMQTT : public Base {
    * @param topic
    * @param text
    */
-  void onMessageReceived(const char* topic, const char* text)
+  void onMessageReceived(const char* topic, const char* const text)
   {
     if (topic == m_changeLevelTopic) {
       changeLevel(text);
@@ -97,9 +97,9 @@ class ArduinoMQTT : public Base {
   }
 
   protected:
-  void append(const Level& level, const std::string& text) override
+  void append(const Level& level, const char* text) override
   {
-    m_mqtt_msg_queue.push({String(m_topic.c_str()), String(text.c_str())});
+    m_mqtt_msg_queue.push({String(m_topic.c_str()), String(text)});
   }
 
   private:

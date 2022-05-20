@@ -40,13 +40,13 @@ class ArduinoSerial : public Base {
   }
 
   protected:
-  void append(const Level& level, const std::string& text) override
+  void append(const Level& level, const char* text) override
   {
     if (m_colored) {
       m_serial->print(LEVEL_COLOR[static_cast<unsigned int>(level)]);
     }
 
-    m_serial->println(text.c_str());
+    m_serial->println(text);
   }
 
   private:

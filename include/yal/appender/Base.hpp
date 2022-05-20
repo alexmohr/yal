@@ -25,11 +25,11 @@ class Base {
 
   Base() :
       m_appenderId(Logger::addAppender(
-        [this](const Level& level, const std::string& text) { append(level, text); }))
+        [this](const Level& level, const char* text) { append(level, text); }))
   {
   }
 
-  virtual void append(const Level& level, const std::string& text) = 0;
+  virtual void append(const Level& level, const char* text) = 0;
 
   AppenderId m_appenderId;
 };
