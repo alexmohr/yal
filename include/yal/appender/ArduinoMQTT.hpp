@@ -17,23 +17,58 @@ namespace yal::appender {
 // using std::string because MQTT library is expecting them
 // this avoids conversions
 struct MqttMessage {
-  String message;
   String topic;
+  String message;
 };
 
 template<typename MQTT>
 class ArduinoMQTT : public Base {
   public:
-  explicit ArduinoMQTT(MQTT* mqtt, std::string topic) :
-      m_mqtt(std::move(mqtt)), m_topic(std::move(topic))
+  /**
+   * Create a new ArduinoMQTT
+   * @param mqtt pointer to the MQTT instance
+   * @param topic topic as const char* const
+   *              to be compatible with std::string and String
+   */
+  explicit ArduinoMQTT(MQTT* mqtt, const char* const topic) :
+      m_mqtt(std::move(mqtt)), m_topic(topic), m_logger(Logger("ArduinoMQTT"))
   {
   }
 
   ArduinoMQTT(const ArduinoMQTT&) = delete;
+  ArduinoMQTT(const ArduinoMQTT&&) = delete;
 
   ~ArduinoMQTT() override
   {
     flush();
+  }
+
+  /**
+   * Register a mqtt topic which changes the logging level
+   * To change the topic via MQTT:
+   * mosquitto_pub -h $HOST -t "$TOPIC/debug/loglevel" -m "$LEVEL" -r
+   * Level can be a value between 0 (the highest log level = all logs)
+   * and 6 (lowest log level = no logs)
+   * You have to call onMessageReceived in your MQTT callback
+   * @param topic This is the MQTT topic which the logger subscribes to
+   */
+  void registerChangeLevelTopic(const char* const topic)
+  {
+    m_mqtt->subscribe(topic);
+    m_changeLevelTopic = topic;
+  }
+
+  /**
+   * Call this method, if you've enabled a topic handler,
+   * in your mqtt message callback.
+   * @param topic
+   * @param text
+   */
+  void onMessageReceived(const char* topic, const char* text)
+  {
+    if (topic == m_changeLevelTopic) {
+      changeLevel(text);
+    }
   }
 
   /**
@@ -49,6 +84,13 @@ class ArduinoMQTT : public Base {
     }
   }
 
+  /**
+   * Get the mqtt message queue
+   * You can use this to append other message aside from logging,
+   * so only one queue is necessary
+   * Send the queue by calling flush when it's safe to do so.
+   * Do not run this in an ISR (i.e. when the message received callback is running)
+   */
   std::queue<MqttMessage>& queue()
   {
     return m_mqtt_msg_queue;
@@ -61,10 +103,24 @@ class ArduinoMQTT : public Base {
   }
 
   private:
+  void changeLevel(const char* const levelValue)
+  {
+    std::stringstream ss(levelValue);
+    int level;
+    if (!(ss >> level)) {
+      m_logger.log(Level::ERROR, "% is not a valid log level", levelValue);
+      return;
+    }
+
+    yal::Logger::setLevel(static_cast<Level::Value>(level));
+  }
+
   MQTT* const m_mqtt;
   const std::string m_topic;
+  std::string m_changeLevelTopic;
 
   std::queue<MqttMessage> m_mqtt_msg_queue;
+  Logger m_logger;
 };
 
 } // namespace yal::appender

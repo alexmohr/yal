@@ -37,7 +37,7 @@ class Logger {
   static void setLevel(const Level& level);
   [[nodiscard]] static const Level& level();
 
-  void log(const Level& level, const char* text) const
+  void log(const Level& level, const char* const text) const
   {
     // discard message is level is turned off
     if (!levelEnabled(level)) {
@@ -72,7 +72,7 @@ class Logger {
   private:
   [[nodiscard]] static bool levelEnabled(const Level& level)
   {
-    return m_level >= level && level <= Level::OFF;
+    return s_level >= level && level <= Level::OFF;
   }
 
   template<typename T, typename... Targs>
@@ -101,7 +101,7 @@ class Logger {
   static inline Level s_defaultLevel = Level::DEBUG;
   static inline GetTime s_getTime = []() { return std::to_string(millis()); };
   static inline std::vector<Appender> s_appender;
-  static inline Level m_level = s_defaultLevel;
+  static inline Level s_level = s_defaultLevel;
   std::string m_context;
 };
 } // namespace yal
