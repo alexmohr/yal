@@ -41,6 +41,10 @@ class Level {
   {
     return static_cast<int>(m_level) <= static_cast<int>(other.m_level);
   }
+  inline bool operator==(const Level& other) const
+  {
+    return m_level == other.m_level;
+  }
 
   explicit operator unsigned int() const
   {

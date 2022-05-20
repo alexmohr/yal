@@ -31,12 +31,12 @@ void Logger::setTimeFunc(GetTime&& func)
 
 void Logger::setLevel(const Level& level)
 {
-  m_level = level;
+  s_level = level;
 }
 
 const Level& Logger::level()
 {
-  return m_level;
+  return s_level;
 }
 
 std::stringstream Logger::messagePrefix(const Level& level) const

@@ -25,6 +25,8 @@ void setup()
   m_logger.log(yal::Level::ERROR, "setup test");
   m_logger.log(yal::Level::FATAL, "setup test");
 
+  m_mqttAppender.registerChangeLevelTopic("/log/level");
+
   // remember to flush the appender when it's safe to do so
   // Do NOT call this while in an ISR
   m_mqttAppender.flush();

@@ -15,9 +15,6 @@ class ArduinoMQTTTest : public testing::Test {
   {
     yal::Logger::setTimeFunc([]() { return "123456789"; });
   }
-
-  protected:
-  static inline const auto m_expectedTime = "[00000000000123456789]"s;
 };
 
 class MQTT {
@@ -25,17 +22,53 @@ class MQTT {
   MQTT() = default;
   MQTT(MQTT&) = delete;
   MOCK_METHOD2(publish, void(std::string, std::string));
+  MOCK_METHOD1(subscribe, void(const std::string&));
 };
 
 TEST_F(ArduinoMQTTTest, expectFlushAtDestruction)
 {
   MQTT mqtt;
   yal::Logger logger;
-  EXPECT_CALL(mqtt, publish(testing::_, testing::_)).Times(1);
-
   const auto topic = "/test";
+  EXPECT_CALL(mqtt, publish(topic, testing::StrEq("[00000000000123456789][DEBUG] bar")))
+    .Times(1);
   {
     yal::appender::ArduinoMQTT<MQTT> appender(&mqtt, topic);
     logger.log(yal::Level::DEBUG, "bar");
   }
+}
+
+TEST_F(ArduinoMQTTTest, changeLevel)
+{
+  MQTT mqtt;
+  yal::Logger logger;
+  const auto initLevel = yal::Level::FATAL;
+  yal::Logger::setLevel(initLevel);
+  yal::appender::ArduinoMQTT<MQTT> appender(&mqtt, "/log");
+
+  // run expects in sequence
+  testing::InSequence seq;
+
+  const auto changeLevelTopic = "changeLevel";
+
+  EXPECT_CALL(mqtt, subscribe(changeLevelTopic));
+  appender.registerChangeLevelTopic(changeLevelTopic);
+
+  // wrong topic
+  appender.onMessageReceived("not-log-topic", "Foobar");
+  EXPECT_EQ(logger.level().value(), initLevel);
+
+  // wrong value
+  appender.onMessageReceived(changeLevelTopic, "Foobar");
+  EXPECT_EQ(logger.level().value(), initLevel);
+
+  // string instead int
+  appender.onMessageReceived(changeLevelTopic, "DEBUG");
+  EXPECT_EQ(logger.level().value(), initLevel);
+
+  // correct call
+  yal::Level level(yal::Level::DEBUG);
+  appender.onMessageReceived(
+    changeLevelTopic, std::to_string(static_cast<int>(level.value())).c_str());
+  EXPECT_EQ(logger.level().value(), level.value());
 }
