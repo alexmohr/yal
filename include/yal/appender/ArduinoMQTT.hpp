@@ -6,8 +6,8 @@
 #ifndef YAL_MQTTAPPENDER
 #define YAL_MQTTAPPENDER
 
+#include <yal/Appender.hpp>
 #include <yal/abstraction.hpp>
-#include <yal/appender/Base.hpp>
 #include <yal/yal.hpp>
 #include <queue>
 #include <utility>
@@ -22,16 +22,20 @@ struct MqttMessage {
 };
 
 template<typename MQTT>
-class ArduinoMQTT : public Base {
+class ArduinoMQTT : public Appender {
   public:
   /**
    * Create a new ArduinoMQTT
+   * @param storage pointer to appender storage, might be instance of logger
    * @param mqtt pointer to the MQTT instance
    * @param topic topic as const char* const
    *              to be compatible with std::string and String
    */
-  explicit ArduinoMQTT(MQTT* mqtt, const char* const topic) :
-      m_mqtt(std::move(mqtt)), m_topic(topic), m_logger(Logger("ArduinoMQTT"))
+  explicit ArduinoMQTT(AppenderStorage* storage, MQTT* mqtt, const char* const topic) :
+      Appender(storage),
+      m_mqtt(std::move(mqtt)),
+      m_topic(topic),
+      m_logger(Logger("ArduinoMQTT"))
   {
   }
 

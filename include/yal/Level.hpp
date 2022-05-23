@@ -45,7 +45,6 @@ class Level {
   {
     return m_level == other.m_level;
   }
-
   explicit operator unsigned int() const
   {
     return static_cast<unsigned int>(m_level);

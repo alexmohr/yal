@@ -11,8 +11,8 @@
 
 yal::Logger m_logger;
 MQTTClient m_mqttClient;
-const yal::appender::ArduinoSerial<HardwareSerial> m_serialAppender(&Serial, true);
-yal::appender::ArduinoMQTT<MQTTClient> m_mqttAppender(&m_mqttClient, "/logTopic");
+const yal::appender::ArduinoSerial<HardwareSerial> m_serialAppender(&m_logger, &Serial, true);
+yal::appender::ArduinoMQTT<MQTTClient> m_mqttAppender(&m_logger, &m_mqttClient, "/logTopic");
 
 void setup()
 {

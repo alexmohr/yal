@@ -12,16 +12,20 @@ Logger::Logger(std::string ctx) : m_context(std::move(ctx))
 {
 }
 
-std::size_t Logger::addAppender(Appender&& appender)
+std::size_t Logger::addAppender(Appender* appender)
 {
-  s_appender.emplace_back(std::move(appender));
-  return s_appender.size();
+  // last elements key + 1
+  const auto newAppenderId = s_appender.empty() ? 1 : s_appender.rbegin()->first + 1;
+  s_appender.insert({newAppenderId, appender});
+  return newAppenderId;
 }
 
-void Logger::removeAppender(AppenderId appenderId)
+void Logger::removeAppender(const AppenderId appenderId)
 {
-  const auto element = s_appender.begin() + static_cast<long>(appenderId);
-  s_appender.erase(element);
+  const auto element = s_appender.find(appenderId);
+  if (element != s_appender.end()) {
+    s_appender.erase(element);
+  }
 }
 
 void Logger::setTimeFunc(GetTime&& func)
