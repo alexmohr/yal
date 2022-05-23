@@ -6,7 +6,6 @@
 #ifndef YAL_MQTTAPPENDER
 #define YAL_MQTTAPPENDER
 
-#include <yal/Appender.hpp>
 #include <yal/abstraction.hpp>
 #include <yal/yal.hpp>
 #include <queue>

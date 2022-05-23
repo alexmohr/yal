@@ -41,7 +41,8 @@ TEST_F(SerialAppenderTest, coloredLogger)
 
 TEST_F(SerialAppenderTest, nonColoredLogger)
 {
-  const yal::appender::ArduinoSerial<HardwareSerial> appender(&m_logger, &m_serial, false);
+  const yal::appender::ArduinoSerial<HardwareSerial> appender(
+    &m_logger, &m_serial, false);
   EXPECT_CALL(m_serial, print(testing::_)).Times(0);
   EXPECT_CALL(m_serial, println(testing::StrEq(m_expectedMsg)));
   m_logger.log(yal::Level::DEBUG, "test");
@@ -53,7 +54,8 @@ TEST_F(SerialAppenderTest, unregister)
   appender.unregister();
 
   {
-    const yal::appender::ArduinoSerial<HardwareSerial> appender2(&m_logger, &m_serial, true);
+    const yal::appender::ArduinoSerial<HardwareSerial> appender2(
+      &m_logger, &m_serial, true);
   }
 
   EXPECT_CALL(m_serial, println(::testing::_)).Times(0);

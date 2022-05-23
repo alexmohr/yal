@@ -3,11 +3,9 @@
 // Licensed under the terms of the MIT License
 //
 
-#include "yal/Appender.hpp"
 #include <gtest/gtest.h>
 #include <yal/yal.hpp>
 #include <string>
-#include <utility>
 
 class LoggerTest : public testing::Test {
   void SetUp() override
