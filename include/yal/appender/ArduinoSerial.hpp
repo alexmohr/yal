@@ -5,7 +5,6 @@
 
 #ifndef YAL_SERIALAPPENDER_H
 #define YAL_SERIALAPPENDER_H
-#include <yal/Appender.hpp>
 #include <yal/abstraction.hpp>
 #include <yal/yal.hpp>
 

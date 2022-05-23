@@ -8,17 +8,18 @@
 
 #include <yal/Level.hpp>
 #include <yal/abstraction.hpp>
+#include <array>
 #include <cstddef>
 #include <functional>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <sstream>
-
 namespace yal {
 
 using AppenderId = std::size_t;
 static constexpr const auto AppenderIdNotSet = std::numeric_limits<AppenderId>::max();
-using GetTime = std::function<std::string()>;
+using TimeFunc = std::function<std::string()>;
 
 class Appender;
 class AppenderStorage {
@@ -64,7 +65,7 @@ class Logger : public AppenderStorage {
   [[nodiscard]] AppenderId addAppender(Appender* appender) override;
   void removeAppender(AppenderId appenderId) override;
 
-  static void setTimeFunc(GetTime&& func);
+  static void setTimeFunc(TimeFunc&& func);
   static void setLevel(const Level& level);
   [[nodiscard]] static const Level& level();
 
@@ -72,6 +73,12 @@ class Logger : public AppenderStorage {
   {
     log(level, text, nullptr);
   }
+
+  static constexpr const auto FORMAT_TIME = 't';
+  static constexpr const auto FORMAT_MSG = 'm';
+  static constexpr const auto FORMAT_CONTEXT = 'c';
+  static constexpr const auto FORMAT_LEVEL = 'l';
+  const char* const s_format = "[%t][%l][%c] %m";
 
   template<typename T, typename... Targs>
   void log(const Level& level, const char* format, T value, Targs... args) const
@@ -81,9 +88,42 @@ class Logger : public AppenderStorage {
       return;
     }
 
-    auto ss = messagePrefix(level);
-    buildMessage(ss, format, value, args...);
+    std::stringstream ss;
+    // auto ss = messagePrefix(level);
+    auto msgFormat = s_format;
+    for (; *msgFormat != '\0'; ++msgFormat) {
+      if (*msgFormat != '%' || *(msgFormat + 1) == '\0') {
+        ss << *msgFormat;
+        continue;
+      }
 
+      const auto formatChar = *(++msgFormat);
+      switch (formatChar) {
+      case FORMAT_MSG:
+        buildMessage(ss, format, value, args...);
+        break;
+      case FORMAT_TIME:
+        static constexpr const auto timeWidth = 20;
+        ss << std::setfill('0') << std::setw(timeWidth) << s_getTime();
+        break;
+      case FORMAT_LEVEL:
+        ss << level.str();
+        break;
+      case FORMAT_CONTEXT:
+        if (!m_context.empty()) {
+          ss << m_context;
+        }
+        break;
+      default:
+        break;
+      }
+    }
+
+    sendMsgToAppenders(level, ss);
+  }
+
+  static void sendMsgToAppenders(const Level& level, const std::stringstream& ss)
+  {
     const auto str = ss.str();
     const auto cstr = str.c_str();
     for (const auto& appender : s_appender) {
@@ -117,11 +157,8 @@ class Logger : public AppenderStorage {
       stream << *format;
     }
   }
-
-  [[nodiscard]] std::stringstream messagePrefix(const Level& level) const;
-
   static inline Level s_defaultLevel = Level::DEBUG;
-  static inline GetTime s_getTime = []() { return std::to_string(millis()); };
+  static inline TimeFunc s_getTime = []() { return std::to_string(millis()); };
   static inline std::map<AppenderId, Appender*> s_appender;
   static inline Level s_level = s_defaultLevel;
   std::string m_context;

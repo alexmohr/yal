@@ -28,7 +28,7 @@ void Logger::removeAppender(const AppenderId appenderId)
   }
 }
 
-void Logger::setTimeFunc(GetTime&& func)
+void Logger::setTimeFunc(TimeFunc&& func)
 {
   s_getTime = std::move(func);
 }
@@ -41,23 +41,6 @@ void Logger::setLevel(const Level& level)
 const Level& Logger::level()
 {
   return s_level;
-}
-
-std::stringstream Logger::messagePrefix(const Level& level) const
-{
-  std::stringstream ss;
-  static constexpr const auto timeWidth = 20;
-  const auto time = s_getTime();
-  if (!time.empty()) {
-    ss << "[" << std::setfill('0') << std::setw(timeWidth) << s_getTime() << "]";
-  }
-  ss << "[" << level.str() << "]";
-  if (!m_context.empty()) {
-    ss << "[" << m_context << "]";
-  }
-  ss << " ";
-
-  return ss;
 }
 
 } // namespace yal
