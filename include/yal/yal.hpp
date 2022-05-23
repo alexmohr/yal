@@ -11,17 +11,48 @@
 #include <cstddef>
 #include <functional>
 #include <limits>
+#include <map>
 #include <sstream>
-#include <vector>
 
 namespace yal {
 
-using Appender = std::function<void(const Level& level, const char* text)>;
 using AppenderId = std::size_t;
 static constexpr const auto AppenderIdNotSet = std::numeric_limits<AppenderId>::max();
 using GetTime = std::function<std::string()>;
 
-class Logger {
+class Appender;
+class AppenderStorage {
+  public:
+  [[nodiscard]] virtual AppenderId addAppender(Appender* appender) = 0;
+  virtual void removeAppender(AppenderId appenderId) = 0;
+};
+
+class Appender {
+  public:
+  explicit Appender(AppenderStorage* storage) :
+      m_appenderStore(storage), m_appenderId(m_appenderStore->addAppender(this))
+  {
+  }
+  virtual ~Appender()
+  {
+    unregister();
+  }
+  virtual void append(const Level& level, const char* text) = 0;
+
+  void unregister()
+  {
+    if (m_appenderId != AppenderIdNotSet) {
+      m_appenderStore->removeAppender(m_appenderId);
+      m_appenderId = AppenderIdNotSet;
+    }
+  }
+
+  protected:
+  AppenderStorage* const m_appenderStore{};
+  AppenderId m_appenderId{};
+};
+
+class Logger : public AppenderStorage {
   public:
   Logger() = default;
   explicit Logger(std::string ctx);
@@ -29,27 +60,17 @@ class Logger {
   Logger(Logger&&) = default;
   void operator=(const Logger&) = delete;
 
-  static AppenderId addAppender(Appender&& appender);
-  static void removeAppender(AppenderId appenderId);
+  // Impl of AppenderStorage
+  [[nodiscard]] AppenderId addAppender(Appender* appender) override;
+  void removeAppender(AppenderId appenderId) override;
 
   static void setTimeFunc(GetTime&& func);
-
   static void setLevel(const Level& level);
   [[nodiscard]] static const Level& level();
 
-  void log(const Level& level, const char* const text) const
+  void log(const Level& level, const char* text) const
   {
-    // discard message is level is turned off
-    if (!levelEnabled(level)) {
-      return;
-    }
-
-    auto ss = messagePrefix(level);
-    ss << text;
-    const auto msg = ss.str();
-    for (const auto& appender : s_appender) {
-      appender(level, msg.c_str());
-    }
+    log(level, text, nullptr);
   }
 
   template<typename T, typename... Targs>
@@ -64,8 +85,9 @@ class Logger {
     buildMessage(ss, format, value, args...);
 
     const auto str = ss.str();
+    const auto cstr = str.c_str();
     for (const auto& appender : s_appender) {
-      appender(level, str.c_str());
+      appender.second->append(level, cstr);
     }
   }
 
@@ -79,7 +101,7 @@ class Logger {
   void buildMessage(std::stringstream& ss, const char* format, T value, Targs... args)
     const
   {
-    for (; *format != '\0'; format++) {
+    for (; *format != '\0'; ++format) {
       if (*format == '%') {
         ss << value;
         buildMessage(ss, format + 1, args...); // recursive call
@@ -91,7 +113,7 @@ class Logger {
 
   static void buildMessage(std::stringstream& stream, const char* format) // base function
   {
-    if (*format != '\0') {
+    if (format != nullptr && *format != '\0') {
       stream << *format;
     }
   }
@@ -100,10 +122,11 @@ class Logger {
 
   static inline Level s_defaultLevel = Level::DEBUG;
   static inline GetTime s_getTime = []() { return std::to_string(millis()); };
-  static inline std::vector<Appender> s_appender;
+  static inline std::map<AppenderId, Appender*> s_appender;
   static inline Level s_level = s_defaultLevel;
   std::string m_context;
 };
+
 } // namespace yal
 
 #endif // YAL_YAL_HPP

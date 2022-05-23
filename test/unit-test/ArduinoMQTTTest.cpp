@@ -33,7 +33,7 @@ TEST_F(ArduinoMQTTTest, expectFlushAtDestruction)
   EXPECT_CALL(mqtt, publish(topic, testing::StrEq("[00000000000123456789][DEBUG] bar")))
     .Times(1);
   {
-    yal::appender::ArduinoMQTT<MQTT> appender(&mqtt, topic);
+    yal::appender::ArduinoMQTT<MQTT> appender(&logger, &mqtt, topic);
     logger.log(yal::Level::DEBUG, "bar");
   }
 }
@@ -44,7 +44,7 @@ TEST_F(ArduinoMQTTTest, changeLevel)
   yal::Logger logger;
   const auto initLevel = yal::Level::FATAL;
   yal::Logger::setLevel(initLevel);
-  yal::appender::ArduinoMQTT<MQTT> appender(&mqtt, "/log");
+  yal::appender::ArduinoMQTT<MQTT> appender(&logger, &mqtt, "/log");
 
   // run expects in sequence
   testing::InSequence seq;
