@@ -7,16 +7,7 @@
 #include <yal/yal.hpp>
 #include <string>
 
-class LoggerTest : public testing::Test {
-  void SetUp() override
-  {
-    yal::Logger::setTimeFunc([]() { return "123456789"; });
-  }
-
-  protected:
-  static inline const auto m_formattedExpect
-    = "[00000000000123456789][DEBUG][test] logger test 42 bar 3.15";
-};
+using std::string_literals::operator""s;
 
 class TestAppender : public yal::Appender {
   public:
@@ -61,7 +52,34 @@ class TestAppender : public yal::Appender {
   std::string m_loggerText;
   std::string m_lastMsg;
   bool m_called = false;
-  static inline const std::string m_expectedTime = "[00000000000123456789]";
+  static inline const std::string m_expectedTime = "00000000000123456789";
+};
+
+class LoggerTest : public testing::Test {
+  protected:
+  void SetUp() override
+  {
+    yal::Logger::setFormat("[%t][%l][%c] %m");
+    yal::Logger::setTimeFunc([]() { return "123456789"; });
+  }
+
+  static void setFormatAndExpectLogEqual(
+    const std::string& format,
+    const std::string& expected)
+  {
+    yal::Logger logger(m_formatTestCtx);
+    const TestAppender appender(&logger);
+    yal::Logger::setFormat(format.c_str());
+    logger.log(yal::Level::INFO, m_formatTestMsg.c_str());
+    EXPECT_TRUE(appender.called());
+    EXPECT_STREQ(expected.c_str(), appender.lastMsg().c_str());
+  }
+
+  static inline const auto m_formattedExpect
+    = "[00000000000123456789][DEBUG][test] logger test 42 bar 3.15";
+
+  static inline const std::string m_formatTestMsg = "test";
+  static inline const std::string m_formatTestCtx = "ctx";
 };
 
 TEST_F(LoggerTest, loggerNoFormat)
@@ -70,7 +88,8 @@ TEST_F(LoggerTest, loggerNoFormat)
   yal::Logger logger(ctx);
   const auto loggerText = "this logger has no format";
   const TestAppender appender(&logger);
-  const auto expected = TestAppender::time() + "[DEBUG][" + ctx + "] " + loggerText;
+  const auto expected
+    = "[" + TestAppender::time() + "][DEBUG][" + ctx + "] " + loggerText;
   logger.log(yal::Level::DEBUG, loggerText);
   EXPECT_EQ(appender.lastMsg(), expected);
   EXPECT_NE(0, appender.id());
@@ -107,17 +126,65 @@ TEST_F(LoggerTest, setLimit)
   for (auto level = static_cast<int>(yal::Level::TRACE);
        level < static_cast<int>(yal::Level::OFF);
        ++level) {
-    const auto maxLevel = static_cast<yal::Level::Value>(level);
-    yal::Logger::setLevel(maxLevel);
-    EXPECT_EQ(yal::Logger::level().value(), maxLevel);
-    for (auto smallerLevel = 0; smallerLevel <= maxLevel; ++smallerLevel) {
+    const auto minLevel = static_cast<yal::Level::Value>(level);
+    yal::Logger::setLevel(minLevel);
+    EXPECT_EQ(yal::Logger::level().value(), minLevel);
+
+    const auto resetAndLog = [&](const int level, bool result) {
       appender.resetCalled();
-      logger.log(static_cast<yal::Level::Value>(smallerLevel), "test");
-      EXPECT_TRUE(appender.called());
+      logger.log(static_cast<yal::Level::Value>(level), "test");
+      EXPECT_EQ(appender.called(), result);
+    };
+
+    for (auto smallerLevel = 0; smallerLevel < minLevel; ++smallerLevel) {
+      resetAndLog(smallerLevel, false);
     }
 
-    appender.resetCalled();
-    logger.log(static_cast<yal::Level::Value>(maxLevel + 1), "test");
-    EXPECT_FALSE(appender.called());
+    for (auto largerLevel = static_cast<int>(minLevel);
+         largerLevel < static_cast<int>(yal::Level::OFF);
+         ++largerLevel) {
+      resetAndLog(largerLevel, true);
+    }
   }
+
+  yal::Logger::setLevel(yal::Level::TRACE);
 }
+
+TEST_F(LoggerTest, formatEmpty)
+{
+  setFormatAndExpectLogEqual("", "");
+}
+
+TEST_F(LoggerTest, formatMsg)
+{
+  setFormatAndExpectLogEqual("%m", m_formatTestMsg);
+}
+
+TEST_F(LoggerTest, formatTime)
+{
+  setFormatAndExpectLogEqual("%t", TestAppender::time());
+}
+
+TEST_F(LoggerTest, formatContext)
+{
+  setFormatAndExpectLogEqual("%c", m_formatTestCtx);
+}
+
+TEST_F(LoggerTest, formatLevel)
+{
+  yal::Level level(yal::Level::INFO);
+  setFormatAndExpectLogEqual("%l", level.str());
+}
+
+TEST_F(LoggerTest, formatPercent)
+{
+  setFormatAndExpectLogEqual("%", "%");
+}
+
+TEST_F(LoggerTest, formatCombined)
+{
+  const auto expected = TestAppender::time() + " FIXED % bar " + m_formatTestMsg;
+  setFormatAndExpectLogEqual("%t FIXED % bar %m", expected);
+}
+
+// todo write operator tests for level

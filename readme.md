@@ -30,3 +30,19 @@ If you need support, feel free to open an issue.
   * This depends on the `MQTT` library 
 * Arduino Serial
   * No deps are required
+
+## Format
+The format of the logger can be configured by calling `setFormat` wit 
+a given format string. 
+Possible options are:
+ * `%t` time
+ * `%m` message
+ * `%c` context
+ * `%l` level
+
+For example to configure a format which prints the level and the message
+call `setFormat("%l %m)`.
+Log output for an info message with text `test` will be `INFO test`
+
+The format defaults to `[%t][%l][%c] %m`.
+If no context is given for a logger `default` will be used

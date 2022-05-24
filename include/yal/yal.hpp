@@ -55,6 +55,11 @@ class Appender {
 
 class Logger : public AppenderStorage {
   public:
+  static constexpr const auto FORMAT_TIME = 't';
+  static constexpr const auto FORMAT_MSG = 'm';
+  static constexpr const auto FORMAT_CONTEXT = 'c';
+  static constexpr const auto FORMAT_LEVEL = 'l';
+
   Logger() = default;
   explicit Logger(std::string ctx);
   Logger(const Logger&) = delete;
@@ -68,17 +73,15 @@ class Logger : public AppenderStorage {
   static void setTimeFunc(TimeFunc&& func);
   static void setLevel(const Level& level);
   [[nodiscard]] static const Level& level();
+  static void setFormat(const char* const format)
+  {
+    s_format = format;
+  }
 
   void log(const Level& level, const char* text) const
   {
     log(level, text, nullptr);
   }
-
-  static constexpr const auto FORMAT_TIME = 't';
-  static constexpr const auto FORMAT_MSG = 'm';
-  static constexpr const auto FORMAT_CONTEXT = 'c';
-  static constexpr const auto FORMAT_LEVEL = 'l';
-  const char* const s_format = "[%t][%l][%c] %m";
 
   template<typename T, typename... Targs>
   void log(const Level& level, const char* format, T value, Targs... args) const
@@ -89,8 +92,7 @@ class Logger : public AppenderStorage {
     }
 
     std::stringstream ss;
-    // auto ss = messagePrefix(level);
-    auto msgFormat = s_format;
+    const auto* msgFormat = s_format.c_str();
     for (; *msgFormat != '\0'; ++msgFormat) {
       if (*msgFormat != '%' || *(msgFormat + 1) == '\0') {
         ss << *msgFormat;
@@ -115,6 +117,7 @@ class Logger : public AppenderStorage {
         }
         break;
       default:
+        ss << "%" << formatChar;
         break;
       }
     }
@@ -134,7 +137,7 @@ class Logger : public AppenderStorage {
   private:
   [[nodiscard]] static bool levelEnabled(const Level& level)
   {
-    return s_level >= level && level <= Level::OFF;
+    return level >= s_level && level <= Level::OFF;
   }
 
   template<typename T, typename... Targs>
@@ -159,9 +162,11 @@ class Logger : public AppenderStorage {
   }
   static inline Level s_defaultLevel = Level::DEBUG;
   static inline TimeFunc s_getTime = []() { return std::to_string(millis()); };
+  static inline std::string s_format = "[%t][%l][%c] %m";
   static inline std::map<AppenderId, Appender*> s_appender;
   static inline Level s_level = s_defaultLevel;
-  std::string m_context;
+
+  std::string m_context = "default";
 };
 
 } // namespace yal

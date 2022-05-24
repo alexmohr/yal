@@ -20,6 +20,7 @@ class SerialAppenderTest : public testing::Test {
   void SetUp() override
   {
     yal::Logger::setTimeFunc([]() { return "123456789"; });
+    yal::Logger::setFormat("[%t][%l] %m");
   }
 
   protected:
