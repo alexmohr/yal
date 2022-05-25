@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <MQTT.h>
+
 #include <yal/appender/ArduinoMQTT.hpp>
 #include <yal/appender/ArduinoSerial.hpp>
 #include <yal/yal.hpp>
@@ -20,8 +21,7 @@ yal::appender::ArduinoMQTT<MQTTClient> m_mqttAppender(
   &m_mqttClient,
   "/logTopic");
 
-void setup()
-{
+void setup() {
   m_mqttClient.connect("mqtt-broker");
   m_logger.log(yal::Level::DEBUG, "setup test");
   m_logger.log(yal::Level::TRACE, "setup test");
@@ -38,8 +38,7 @@ void setup()
   m_mqttAppender.flush();
 }
 
-void loop()
-{
+void loop() {
   m_logger.log(yal::Level::DEBUG, "loop test");
   m_logger.log(yal::Level::TRACE, "loop test");
   m_logger.log(yal::Level::DEBUG, "loop test");

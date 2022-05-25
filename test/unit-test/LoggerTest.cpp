@@ -4,100 +4,92 @@
 //
 
 #include <gtest/gtest.h>
+
 #include <yal/yal.hpp>
 #include <string>
 
 using std::string_literals::operator""s;
 
 class TestAppender : public yal::Appender {
-  public:
-  explicit TestAppender(yal::AppenderStorage* storage) : yal::Appender(storage)
-  {
+ public:
+  explicit TestAppender(
+    yal::AppenderStorage* storage,
+    const std::string& format = yal::Logger::DEFAULT_FORMAT) :
+      yal::Appender(storage, format) {
   }
 
-  [[nodiscard]] yal::AppenderId id() const
-  {
+  [[nodiscard]] yal::AppenderId id() const {
     return m_appenderId;
   }
 
-  [[nodiscard]] const std::string& lastMsg() const
-  {
+  [[nodiscard]] const std::string& lastMsg() const {
     return m_lastMsg;
   }
 
-  [[nodiscard]] static const std::string& time()
-  {
-    return m_expectedTime;
+  [[nodiscard]] static const std::string& time() {
+    return s_expectedTime;
   }
 
-  [[nodiscard]] bool called() const
-  {
+  [[nodiscard]] bool called() const {
     return m_called;
   }
 
-  void resetCalled()
-  {
+  void resetCalled() {
     m_called = false;
   }
 
-  protected:
-  void append(const yal::Level& level, const char* text) override
-  {
+ protected:
+  void append(const yal::Level& level, const char* text) override {
     m_called = true;
     m_lastMsg = text;
   }
 
-  private:
+ private:
   std::string m_ctx;
   std::string m_loggerText;
   std::string m_lastMsg;
   bool m_called = false;
-  static inline const std::string m_expectedTime = "00000000000123456789";
+  static inline const std::string s_expectedTime = "00000000000123456789";
 };
 
 class LoggerTest : public testing::Test {
-  protected:
-  void SetUp() override
-  {
-    yal::Logger::setFormat("[%t][%l][%c] %m");
+ protected:
+  void SetUp() override {
     yal::Logger::setTimeFunc([]() { return "123456789"; });
   }
 
   static void setFormatAndExpectLogEqual(
     const std::string& format,
-    const std::string& expected)
-  {
+    const std::string& expected,
+    const bool expectLoggerCalled = true) {
     yal::Logger logger(m_formatTestCtx);
-    const TestAppender appender(&logger);
-    yal::Logger::setFormat(format.c_str());
+    const TestAppender appender(&logger, format);
     logger.log(yal::Level::INFO, m_formatTestMsg.c_str());
-    EXPECT_TRUE(appender.called());
+    EXPECT_EQ(expectLoggerCalled, appender.called());
     EXPECT_STREQ(expected.c_str(), appender.lastMsg().c_str());
   }
 
-  static inline const auto m_formattedExpect
-    = "[00000000000123456789][DEBUG][test] logger test 42 bar 3.15";
+  static inline const auto m_formattedExpect =
+    "[00000000000123456789][DEBUG][test] logger test 42 bar 3.15";
 
   static inline const std::string m_formatTestMsg = "test";
   static inline const std::string m_formatTestCtx = "ctx";
 };
 
-TEST_F(LoggerTest, loggerNoFormat)
-{
+TEST_F(LoggerTest, loggerNoFormat) {
   const auto ctx = "no-format";
   yal::Logger logger(ctx);
   const auto loggerText = "this logger has no format";
   const TestAppender appender(&logger);
-  const auto expected
-    = "[" + TestAppender::time() + "][DEBUG][" + ctx + "] " + loggerText;
+  const auto expected =
+    "[" + TestAppender::time() + "][DEBUG][" + ctx + "] " + loggerText;
   logger.log(yal::Level::DEBUG, loggerText);
   EXPECT_EQ(appender.lastMsg(), expected);
   EXPECT_NE(0, appender.id());
   logger.removeAppender(appender.id());
 }
 
-TEST_F(LoggerTest, loggerFormat)
-{
+TEST_F(LoggerTest, loggerFormat) {
   yal::Logger logger("test");
   const TestAppender appender(&logger);
 
@@ -105,8 +97,7 @@ TEST_F(LoggerTest, loggerFormat)
   EXPECT_EQ(appender.lastMsg(), m_formattedExpect);
 }
 
-TEST_F(LoggerTest, multipleAppenders)
-{
+TEST_F(LoggerTest, multipleAppenders) {
   yal::Logger logger("test");
   const TestAppender appender1(&logger);
   const TestAppender appender2(&logger);
@@ -118,8 +109,7 @@ TEST_F(LoggerTest, multipleAppenders)
   logger.removeAppender(appender1.id());
 }
 
-TEST_F(LoggerTest, setLimit)
-{
+TEST_F(LoggerTest, setLimit) {
   yal::Logger logger;
   TestAppender appender(&logger);
 
@@ -150,39 +140,33 @@ TEST_F(LoggerTest, setLimit)
   yal::Logger::setLevel(yal::Level::TRACE);
 }
 
-TEST_F(LoggerTest, formatEmpty)
-{
-  setFormatAndExpectLogEqual("", "");
+TEST_F(LoggerTest, formatEmpty) {
+  setFormatAndExpectLogEqual("", "", false);
 }
 
-TEST_F(LoggerTest, formatMsg)
-{
+TEST_F(LoggerTest, formatMsg) {
   setFormatAndExpectLogEqual("%m", m_formatTestMsg);
 }
 
-TEST_F(LoggerTest, formatTime)
-{
+TEST_F(LoggerTest, formatTime) {
   setFormatAndExpectLogEqual("%t", TestAppender::time());
 }
 
-TEST_F(LoggerTest, formatContext)
-{
+TEST_F(LoggerTest, formatContext) {
   setFormatAndExpectLogEqual("%c", m_formatTestCtx);
 }
 
-TEST_F(LoggerTest, formatLevel)
-{
+TEST_F(LoggerTest, formatLevel) {
   yal::Level level(yal::Level::INFO);
   setFormatAndExpectLogEqual("%l", level.str());
 }
 
-TEST_F(LoggerTest, formatPercent)
-{
-  setFormatAndExpectLogEqual("%", "%");
+TEST_F(LoggerTest, formatPercent) {
+  const auto msg = "% test %foo bar %";
+  setFormatAndExpectLogEqual(msg, msg);
 }
 
-TEST_F(LoggerTest, formatCombined)
-{
+TEST_F(LoggerTest, formatCombined) {
   const auto expected = TestAppender::time() + " FIXED % bar " + m_formatTestMsg;
   setFormatAndExpectLogEqual("%t FIXED % bar %m", expected);
 }

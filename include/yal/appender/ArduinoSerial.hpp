@@ -11,16 +11,19 @@
 namespace yal::appender {
 template<typename HardwareSerial>
 class ArduinoSerial : public Appender {
-  public:
+ public:
   /**
    * Create a serial appender instance
    * @param storage Pointer to an instance of appender storage (logger)
    * @param serial Arduino serial logger
    * @param colored Set to true to sent ansi escape codes to color output
    */
-  ArduinoSerial(AppenderStorage* storage, HardwareSerial* serial, bool colored) :
-      Appender(storage), m_serial(serial), m_colored(colored)
-  {
+  ArduinoSerial(
+    AppenderStorage* storage,
+    HardwareSerial* serial,
+    bool colored,
+    const std::string& format = yal::Logger::DEFAULT_FORMAT) :
+      Appender(storage, format), m_serial(serial), m_colored(colored) {
   }
 
   ArduinoSerial(const ArduinoSerial&) = delete;
@@ -31,8 +34,7 @@ class ArduinoSerial : public Appender {
    * Can be used to initialize the serial port
    * @param baud baud rate to use
    */
-  void begin(const unsigned long baud)
-  {
+  void begin(const unsigned long baud) {
     m_serial->begin(baud);
     while (!m_serial) {
       delay(50);
@@ -41,9 +43,8 @@ class ArduinoSerial : public Appender {
     m_serial->println("");
   }
 
-  protected:
-  void append(const Level& level, const char* text) override
-  {
+ protected:
+  void append(const Level& level, const char* text) override {
     if (m_colored) {
       m_serial->print(LEVEL_COLOR[static_cast<unsigned int>(level)]);
     }
@@ -51,7 +52,7 @@ class ArduinoSerial : public Appender {
     m_serial->println(text);
   }
 
-  private:
+ private:
   HardwareSerial* m_serial = nullptr;
   bool m_colored;
 
@@ -73,6 +74,6 @@ class ArduinoSerial : public Appender {
   };
 };
 
-} // namespace yal::appender
+}  // namespace yal::appender
 
-#endif // YAL_SERIALAPPENDER_H
+#endif  // YAL_SERIALAPPENDER_H

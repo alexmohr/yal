@@ -4,34 +4,32 @@
 //
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <yal/appender/ArduinoSerial.hpp>
 #include <yal/yal.hpp>
 #include <string>
 using std::string_literals::operator""s;
 
 class HardwareSerial {
-  public:
+ public:
   MOCK_METHOD1(begin, void(unsigned long));
   MOCK_METHOD1(print, void(const char* const text));
   MOCK_METHOD1(println, void(const char* const text));
 };
 
 class SerialAppenderTest : public testing::Test {
-  void SetUp() override
-  {
+  void SetUp() override {
     yal::Logger::setTimeFunc([]() { return "123456789"; });
-    yal::Logger::setFormat("[%t][%l] %m");
   }
 
-  protected:
-  static inline const auto m_expectedMsg = "[00000000000123456789][DEBUG] test"s;
+ protected:
+  static inline const auto m_expectedMsg = "[00000000000123456789][DEBUG][default] test"s;
   yal::Logger m_logger = yal::Logger();
 
   HardwareSerial m_serial;
 };
 
-TEST_F(SerialAppenderTest, coloredLogger)
-{
+TEST_F(SerialAppenderTest, coloredLogger) {
   const yal::appender::ArduinoSerial<HardwareSerial> appender(&m_logger, &m_serial, true);
 
   // color for debug
@@ -40,8 +38,7 @@ TEST_F(SerialAppenderTest, coloredLogger)
   m_logger.log(yal::Level::DEBUG, "test");
 }
 
-TEST_F(SerialAppenderTest, nonColoredLogger)
-{
+TEST_F(SerialAppenderTest, nonColoredLogger) {
   const yal::appender::ArduinoSerial<HardwareSerial> appender(
     &m_logger, &m_serial, false);
   EXPECT_CALL(m_serial, print(testing::_)).Times(0);
@@ -49,8 +46,7 @@ TEST_F(SerialAppenderTest, nonColoredLogger)
   m_logger.log(yal::Level::DEBUG, "test");
 }
 
-TEST_F(SerialAppenderTest, unregister)
-{
+TEST_F(SerialAppenderTest, unregister) {
   yal::appender::ArduinoSerial<HardwareSerial> appender(&m_logger, &m_serial, true);
   appender.unregister();
 

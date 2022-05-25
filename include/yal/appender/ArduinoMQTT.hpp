@@ -22,7 +22,7 @@ struct MqttMessage {
 
 template<typename MQTT>
 class ArduinoMQTT : public Appender {
-  public:
+ public:
   /**
    * Create a new ArduinoMQTT
    * @param storage pointer to appender storage, might be instance of logger
@@ -30,19 +30,21 @@ class ArduinoMQTT : public Appender {
    * @param topic topic as const char* const
    *              to be compatible with std::string and String
    */
-  explicit ArduinoMQTT(AppenderStorage* storage, MQTT* mqtt, const char* const topic) :
-      Appender(storage),
+  explicit ArduinoMQTT(
+    AppenderStorage* storage,
+    MQTT* mqtt,
+    const char* const topic,
+    const std::string& format = yal::Logger::DEFAULT_FORMAT) :
+      Appender(storage, format),
       m_mqtt(std::move(mqtt)),
       m_topic(topic),
-      m_logger(Logger("ArduinoMQTT"))
-  {
+      m_logger(Logger("ArduinoMQTT")) {
   }
 
   ArduinoMQTT(const ArduinoMQTT&) = delete;
   ArduinoMQTT(const ArduinoMQTT&&) = delete;
 
-  ~ArduinoMQTT() override
-  {
+  ~ArduinoMQTT() override {
     flush();
   }
 
@@ -55,8 +57,7 @@ class ArduinoMQTT : public Appender {
    * You have to call onMessageReceived in your MQTT callback
    * @param topic This is the MQTT topic which the logger subscribes to
    */
-  void registerChangeLevelTopic(const char* const topic)
-  {
+  void registerChangeLevelTopic(const char* const topic) {
     m_mqtt->subscribe(topic);
     m_changeLevelTopic = topic;
   }
@@ -67,8 +68,7 @@ class ArduinoMQTT : public Appender {
    * @param topic
    * @param text
    */
-  void onMessageReceived(const char* topic, const char* const text)
-  {
+  void onMessageReceived(const char* topic, const char* const text) {
     if (topic == m_changeLevelTopic) {
       changeLevel(text);
     }
@@ -78,8 +78,7 @@ class ArduinoMQTT : public Appender {
    * Flush buffered messages to mqtt.
    * Only call this when not running an ISR
    */
-  void flush()
-  {
+  void flush() {
     while (!m_mqtt_msg_queue.empty()) {
       const auto& msg = m_mqtt_msg_queue.front();
       m_mqtt->publish(msg.topic, msg.message);
@@ -92,22 +91,20 @@ class ArduinoMQTT : public Appender {
    * You can use this to append other message aside from logging,
    * so only one queue is necessary
    * Send the queue by calling flush when it's safe to do so.
-   * Do not run this in an ISR (i.e. when the message received callback is running)
+   * Do not run this in an ISR (i.e. when the message received callback is
+   * running)
    */
-  std::queue<MqttMessage>& queue()
-  {
+  std::queue<MqttMessage>& queue() {
     return m_mqtt_msg_queue;
   }
 
-  protected:
-  void append(const Level& level, const char* text) override
-  {
+ protected:
+  void append(const Level& level, const char* text) override {
     m_mqtt_msg_queue.push({String(m_topic.c_str()), String(text)});
   }
 
-  private:
-  void changeLevel(const char* const levelValue)
-  {
+ private:
+  void changeLevel(const char* const levelValue) {
     std::stringstream ss(levelValue);
     int level;
     if (!(ss >> level)) {
@@ -126,6 +123,6 @@ class ArduinoMQTT : public Appender {
   Logger m_logger;
 };
 
-} // namespace yal::appender
+}  // namespace yal::appender
 
-#endif // YAL_MQTTAPPENDER
+#endif  // YAL_MQTTAPPENDER

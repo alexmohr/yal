@@ -1,20 +1,38 @@
----
 Checks: >
+  # enable all checks
   *,
+  
+  # do not like trailing return
   -modernize-use-trailing-return-type,
+  
+  # using gcc
   -llvmlibc*,
+  
+  # not using altera
   -altera*,
+  
+  # not using fuchsia
   -fuchsia*,
-  -modernize-use-trailing-return-type,
-  -hicpp-signed-bitwise,
-  -llvm-include-order,
-  -llvm-header-guard,
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
-  -hicpp-no-array-decay,
-  -system-headers,
-  -readability-identifier-naming,
+  
+  # not using abseil
   -abseil-*,
-  -google-runtime-int
+  
+  # arduino types are also specified as i.e. long and not in64
+  -google-runtime-int,
+  
+  # disable so we can have abstract classes
+  -cppcoreguidelines-special-member-functions,
+  
+  # disable so we can have abstract classes
+  -hicpp-special-member-functions
+  
+
+#    -llvm-include-order,
+#    -llvm-header-guard,
+#    -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+#    -hicpp-no-array-decay,
+#    -system-headers,
+#    -readability-identifier-naming,
 WarningsAsErrors: '*'
 HeaderFilterRegex: '*'
 AnalyzeTemporaryDtors: false
@@ -48,4 +66,3 @@ CheckOptions:
     value: llvm
   - key: modernize-use-nullptr.NullMacros
     value: 'NULL'
-...
