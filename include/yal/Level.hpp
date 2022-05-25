@@ -13,49 +13,40 @@
 namespace yal {
 
 class Level {
-  public:
+ public:
   enum Value { TRACE = 0, DEBUG, INFO, WARNING, ERROR, FATAL, OFF };
 
-  constexpr Level(Value value) : m_level(value)
-  {
+  constexpr Level(Value value) : m_level(value) {
   }
 
-  [[nodiscard]] std::string str() const
-  {
-    return s_log_level_name[m_level];
+  [[nodiscard]] const char* str() const {
+    return s_log_level_name.at(m_level);
   }
 
-  inline bool operator>(const Level& other) const
-  {
+  inline bool operator>(const Level& other) const {
     return static_cast<int>(m_level) > static_cast<int>(other.m_level);
   }
-  inline bool operator>=(const Level& other) const
-  {
+  inline bool operator>=(const Level& other) const {
     return static_cast<int>(m_level) >= static_cast<int>(other.m_level);
   }
-  inline bool operator<(const Level& other) const
-  {
+  inline bool operator<(const Level& other) const {
     return static_cast<int>(m_level) < static_cast<int>(other.m_level);
   }
-  inline bool operator<=(const Level& other) const
-  {
+  inline bool operator<=(const Level& other) const {
     return static_cast<int>(m_level) <= static_cast<int>(other.m_level);
   }
-  inline bool operator==(const Level& other) const
-  {
+  inline bool operator==(const Level& other) const {
     return m_level == other.m_level;
   }
-  explicit operator unsigned int() const
-  {
+  explicit operator unsigned int() const {
     return static_cast<unsigned int>(m_level);
   }
 
-  [[nodiscard]] const Value& value() const
-  {
+  [[nodiscard]] const Value& value() const {
     return m_level;
   }
 
-  private:
+ private:
   Value m_level;
 
   static constexpr std::array s_log_level_name{
@@ -68,6 +59,6 @@ class Level {
     "OFF  ",
   };
 };
-} // namespace yal
+}  // namespace yal
 
-#endif // YAL_LEVEL_HPP
+#endif  // YAL_LEVEL_HPP

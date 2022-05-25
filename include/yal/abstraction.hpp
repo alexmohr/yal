@@ -26,4 +26,4 @@ unsigned long millis();
 #include <Arduino.h>
 #endif
 
-#endif // YAL_ABSTRACTION_HPP
+#endif  // YAL_ABSTRACTION_HPP

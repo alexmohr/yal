@@ -8,13 +8,11 @@
 #include <chrono>
 #include <thread>
 
-void delay(unsigned long millis)
-{
+void delay(unsigned long millis) {
   std::this_thread::sleep_for(std::chrono::milliseconds(millis));
 }
 
-unsigned long millis()
-{
+unsigned long millis() {
   return std::chrono::steady_clock::now().time_since_epoch().count();
 }
 

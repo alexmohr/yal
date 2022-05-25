@@ -1,5 +1,5 @@
 ---
-BasedOnStyle: WebKit
+BasedOnStyle: Google
 BraceWrapping:
   AfterControlStatement: MultiLine
   IndentBraces: true
@@ -40,6 +40,8 @@ IndentWidth: 2
 ObjCBlockIndentWidth: 2
 ContinuationIndentWidth: 2
 
-
 AllowAllParametersOfDeclarationOnNextLine: false
+
+SortIncludes: 'CaseSensitive'
+
 ...

@@ -4,6 +4,7 @@
 //
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <yal/appender/ArduinoMQTT.hpp>
 #include <yal/yal.hpp>
 #include <string>
@@ -11,27 +12,25 @@
 using std::string_literals::operator""s;
 
 class ArduinoMQTTTest : public testing::Test {
-  void SetUp() override
-  {
+  void SetUp() override {
     yal::Logger::setTimeFunc([]() { return "123456789"; });
-    yal::Logger::setFormat("[%t][%l] %m");
   }
 };
 
 class MQTT {
-  public:
+ public:
   MQTT() = default;
   MQTT(MQTT&) = delete;
   MOCK_METHOD2(publish, void(std::string, std::string));
   MOCK_METHOD1(subscribe, void(const std::string&));
 };
 
-TEST_F(ArduinoMQTTTest, expectFlushAtDestruction)
-{
+TEST_F(ArduinoMQTTTest, expectFlushAtDestruction) {
   MQTT mqtt;
   yal::Logger logger;
   const auto topic = "/test";
-  EXPECT_CALL(mqtt, publish(topic, testing::StrEq("[00000000000123456789][DEBUG] bar")))
+  EXPECT_CALL(
+    mqtt, publish(topic, testing::StrEq("[00000000000123456789][DEBUG][default] bar")))
     .Times(1);
   {
     yal::appender::ArduinoMQTT<MQTT> appender(&logger, &mqtt, topic);
@@ -39,8 +38,7 @@ TEST_F(ArduinoMQTTTest, expectFlushAtDestruction)
   }
 }
 
-TEST_F(ArduinoMQTTTest, changeLevel)
-{
+TEST_F(ArduinoMQTTTest, changeLevel) {
   MQTT mqtt;
   yal::Logger logger;
   const auto initLevel = yal::Level::FATAL;

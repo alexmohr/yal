@@ -5,6 +5,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_CXX_CLANG_TIDY
+        clang-tidy;
+        -format-style='file';
+        -header-filter=${CMAKE_CURRENT_SOURCE_DIR};
+        )
+
 find_package(PkgConfig)
 
 project("yal" C CXX)
