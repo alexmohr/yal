@@ -98,6 +98,20 @@ class ArduinoMQTT : public Appender {
     return m_mqtt_msg_queue;
   }
 
+  /**
+   * Set the MQTT topic which will be used for logging
+   */
+  void setTopic(const std::string& topic) {
+    m_topic = topic;
+  }
+
+  /**
+   * Get the currently set mqtt topic
+   */
+  const char* topic() {
+    return m_topic.c_str();
+  }
+
  protected:
   void append(const Level& level, const char* text) override {
     m_mqtt_msg_queue.push({String(m_topic.c_str()), String(text)});
@@ -116,7 +130,7 @@ class ArduinoMQTT : public Appender {
   }
 
   MQTT* const m_mqtt;
-  const std::string m_topic;
+  std::string m_topic;
   std::string m_changeLevelTopic;
 
   std::queue<MqttMessage> m_mqtt_msg_queue;
