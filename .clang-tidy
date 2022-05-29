@@ -25,14 +25,7 @@ Checks: >
   
   # disable so we can have abstract classes
   -hicpp-special-member-functions
-  
 
-#    -llvm-include-order,
-#    -llvm-header-guard,
-#    -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
-#    -hicpp-no-array-decay,
-#    -system-headers,
-#    -readability-identifier-naming,
 WarningsAsErrors: '*'
 HeaderFilterRegex: '*'
 AnalyzeTemporaryDtors: false
