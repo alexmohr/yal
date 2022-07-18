@@ -11,6 +11,7 @@
 #include <yal/yal.hpp>
 
 yal::Logger m_logger;
+#if WITH_MQTT_CLIENT
 MQTTClient m_mqttClient;
 const yal::appender::ArduinoSerial<HardwareSerial> m_serialAppender(
   &m_logger,
@@ -20,8 +21,16 @@ yal::appender::ArduinoMQTT<MQTTClient> m_mqttAppender(
   &m_logger,
   &m_mqttClient,
   "/logTopic");
+#endif
+
+yal::appender::ArduinoSerial<HardwareSerial> m_serialAppender(&m_logger, &Serial, true);
 
 void setup() {
+  m_serialAppender.begin(115200);
+  m_logger.log(yal::Level::INFO, "Running setup");
+  yal::Logger::setLevel(yal::Level::TRACE);
+
+#if WITH_MQTT_CLIENT
   m_mqttClient.connect("mqtt-broker");
   m_logger.log(yal::Level::DEBUG, "setup test");
   m_logger.log(yal::Level::TRACE, "setup test");
@@ -36,6 +45,7 @@ void setup() {
   // remember to flush the appender when it's safe to do so
   // Do NOT call this while in an ISR
   m_mqttAppender.flush();
+#endif
 }
 
 void loop() {
@@ -47,9 +57,11 @@ void loop() {
   m_logger.log(yal::Level::ERROR, "loop test");
   m_logger.log(yal::Level::FATAL, "loop test");
 
+#if WITH_MQTT_CLIENT
   // remember to flush the appender when it's safe to do so
   // Do NOT call this while in an ISR
   m_mqttAppender.flush();
+#endif
 
   delay(100);
 }
