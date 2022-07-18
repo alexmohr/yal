@@ -42,6 +42,6 @@ ContinuationIndentWidth: 2
 
 AllowAllParametersOfDeclarationOnNextLine: false
 
-SortIncludes: 'CaseSensitive'
+#SortIncludes: 'CaseSensitive'
 
 ...
