@@ -7,12 +7,7 @@ version has to be used.
 
 ### ESP8266
 In your `platformio.ini` insert the following lines: 
-```ini
-platform: espressif8266@3.2.0
-platform_packages = toolchain-xtensa@~2.100300.0
-```
 
-You also have to set the following build flags
 ```ini
 build_flags =
     -std=gnu++17

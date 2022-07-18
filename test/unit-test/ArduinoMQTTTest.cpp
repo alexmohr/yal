@@ -71,3 +71,12 @@ TEST_F(ArduinoMQTTTest, changeLevel) {
     changeLevelTopic, std::to_string(static_cast<int>(level.value())).c_str());
   EXPECT_EQ(logger.level().value(), level.value());
 }
+
+TEST_F(ArduinoMQTTTest, setTopic) {
+  MQTT mqtt;
+  yal::Logger logger;
+  yal::appender::ArduinoMQTT<MQTT> appender(&logger, &mqtt, "/log");
+  const std::string newTopic = "bar";
+  appender.setTopic(newTopic);
+  EXPECT_STREQ(newTopic.c_str(), appender.topic());
+}
